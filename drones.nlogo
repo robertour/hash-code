@@ -1,3 +1,5 @@
+extensions[array]
+
 globals[
   height
   width
@@ -6,6 +8,7 @@ globals[
   maxpayload
   diferent
   nwarehouse
+  norders
 ]
 
 breed [
@@ -36,7 +39,6 @@ to load [filename]
   set maxturns file-read
   set maxpayload file-read
   set diferent file-read
-  show diferent
   let idx 0
   repeat diferent[
     create-tipos 1 [
@@ -52,16 +54,41 @@ to load [filename]
   repeat nwarehouse[
     set y file-read 
     set x file-read 
-    show x
-    show y
     ask patch x y
     [
      let warehouse idw
      set pcolor blue 
+     let unidades array:from-list n-values diferent [0]
+     foreach n-values diferent [?] [
+       array:set unidades ? file-read 
+     ]
     ]
     set idw idw + 1
   ]
-   
+  set norders file-read
+  let ido 0
+  let nitems 0
+  repeat norders[
+    set y file-read 
+    set x file-read 
+    ask patch x y
+    [
+     let order ido
+     set pcolor red
+     set nitems file-read
+     let unidades array:from-list n-values diferent [0]
+     let lista (list)
+     repeat nitems[
+       set lista lput file-read lista
+     ]
+     let i 0
+     repeat nitems[
+      array:set unidades i length filter [? = i] lista
+      set i i + 1
+     ]
+    ]
+    set ido ido + 1
+  ] 
  
   file-close 
 end
@@ -105,13 +132,13 @@ GRAPHICS-WINDOW
 1
 1
 0
-1
-1
+0
+0
 1
 0
 600
--400
 0
+400
 0
 0
 1
