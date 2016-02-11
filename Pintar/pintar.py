@@ -1,8 +1,8 @@
 import numpy as np
 import pylab as pl
-f = open('/home/diego/Dropbox/Seville/Googlehash/logo.in','r')
+f = open('logo.in','r')
 img =  np.zeros(map(int, f.readline().split(' ')))
-print img.shape
+print (img.shape)
 i = 0
 for line in f:
     j = 0
