@@ -1,4 +1,4 @@
-extensions[array]
+extensions [array]
 
 globals[
   height
@@ -24,6 +24,20 @@ breed [
 tipos-own[
  peso 
  id
+]
+patches-own[
+  unidades
+  lista
+  warehouse
+  order
+]
+
+drones-own [
+  elemento
+ items-a-buscar
+ items-cargados
+ orden
+ almacen
 ]
 
 
@@ -56,14 +70,18 @@ to load [filename]
     set x file-read 
     ask patch x y
     [
-     let warehouse idw
+     set warehouse idw
      set pcolor blue 
-     let unidades array:from-list n-values diferent [0]
+     set unidades array:from-list n-values diferent [0]
      foreach n-values diferent [?] [
        array:set unidades ? file-read 
      ]
     ]
     set idw idw + 1
+  ]
+   ask patches with [pcolor = blue and warehouse = 0]
+  [
+    sprout-drones ndrones [set size 20 set items-a-buscar (list) set items-cargados (list) set elemento -1]
   ]
   set norders file-read
   let ido 0
@@ -73,11 +91,11 @@ to load [filename]
     set x file-read 
     ask patch x y
     [
-     let order ido
+     set order ido
      set pcolor red
      set nitems file-read
-     let unidades array:from-list n-values diferent [0]
-     let lista (list)
+     set unidades array:from-list n-values diferent [0]
+     set lista (list)
      repeat nitems[
        set lista lput file-read lista
      ]
@@ -94,38 +112,81 @@ to load [filename]
 end
 
 to go
-  ask patches with [pcolor = black]
+  ask drones[
+    ifelse length items-a-buscar = 0[
+      get-items
+    ]
+    [
+      servir-items
+    ]
+  ]
+  tick
+end
+
+;to get-orders
+;    set lista-ordenes lput (min-one-of patches with [pcolor = red] [distance myself]) lista-ordenes 
+;end
+
+
+to get-items
+    ifelse ticks = 0[
+      set orden one-of patches with [pcolor = red and length lista > 0]
+    ]
+    [
+      set orden min-one-of patches with [pcolor = red and length lista > 0] [distance myself]
+    ]
+    set items-a-buscar lput (first [lista] of orden) items-a-buscar
+    ask orden [set lista but-first lista]
+end
+
+to servir-items
+  ifelse elemento = -1[
+    set elemento first items-a-buscar
+    set almacen min-one-of patches with [pcolor = blue and (array:item unidades [elemento] of myself) > 0] [distance myself]
+    array:set  [unidades] of almacen elemento (array:item [unidades] of almacen elemento - 1)
+    ;ask almacen [array:set unidades elemento (array:item unidades elemento - 1) ]    
+  ][
+    ifelse length filter [? = elemento] items-cargados = 0[
+      ve-almacen
+    ][
+      ve-orden
+    ]
+  ]
+
+end
+
+to ve-almacen
+  ifelse patch-here = almacen[
+      set items-cargados lput elemento items-cargados
+  ]
   [
-    let res1 try-square self
+      face almacen
+      fd 1
   ]
 end
 
-to-report try-square[p]
-  set pcolor blue
-  let res 0
-  ask neighbors [
-   let parent p
-   set pcolor blue
-   ifelse count patches with [parent = p and pcolor = white] < 1
-   [
-    set res try-square p 
-   ]
-   [
-    set res count patches with [parent = p and pcolor = white]
-   ]
+to ve-orden
+  ifelse patch-here = orden[
+      set items-a-buscar but-first items-a-buscar 
+      set elemento -1
+      if length [lista] of patch-here = 0 [
+        ask patch-here [set pcolor black]
+      ]
   ]
-  report res
+  [
+      face orden
+      fd 1
+  ]
 end
-  
 @#$#@#$#@
 GRAPHICS-WINDOW
 6
 66
-617
-498
+1218
+899
 -1
 -1
-1.0
+2.0
 1
 10
 1
@@ -144,6 +205,41 @@ GRAPHICS-WINDOW
 1
 ticks
 30.0
+
+BUTTON
+136
+21
+199
+54
+NIL
+go
+T
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+PLOT
+298
+24
+498
+174
+pedidos
+NIL
+NIL
+0.0
+10.0
+0.0
+10.0
+true
+false
+"" ""
+PENS
+"pedidos" 1.0 0 -16777216 true "" "plot count patches with [pcolor = red]"
 
 @#$#@#$#@
 ## WHAT IS IT?
