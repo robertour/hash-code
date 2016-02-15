@@ -38,6 +38,7 @@ drones-own [
  items-cargados
  orden
  almacen
+ id
 ]
 
 
@@ -45,7 +46,7 @@ to load [filename]
   clear-all
   reset-ticks
   file-close 
-  file-open filename
+  file-open word filename ".in"
   ;read one line
   set height file-read
   set width file-read
@@ -54,13 +55,16 @@ to load [filename]
   set maxpayload file-read
   set diferent file-read
   let idx 0
+  let temp 0
   repeat diferent[
-    create-tipos 1 [
-      set id idx
-      set peso file-read
-      set id id + 1
-    ]
+  set temp file-read
   ]
+  ;  create-tipos 1 [
+  ;    set id idx
+  ;    set peso file-read
+  ;    set id id + 1
+  ;  ]
+  ;]
   set nwarehouse file-read
   let idw 0
   let x 0
@@ -81,7 +85,7 @@ to load [filename]
   ]
    ask patches with [pcolor = blue and warehouse = 0]
   [
-    sprout-drones ndrones [set size 20 set items-a-buscar (list) set items-cargados (list) set elemento -1]
+    sprout-drones ndrones [set size 20 set items-a-buscar (list) set items-cargados (list) set elemento -1 ]
   ]
   set norders file-read
   let ido 0
@@ -109,6 +113,7 @@ to load [filename]
   ] 
  
   file-close 
+  file-open word filename ".out"
 end
 
 to go
@@ -144,6 +149,14 @@ to servir-items
     set elemento first items-a-buscar
     set almacen min-one-of patches with [pcolor = blue and (array:item unidades [elemento] of myself) > 0] [distance myself]
     array:set  [unidades] of almacen elemento (array:item [unidades] of almacen elemento - 1)
+    file-type who
+    file-type " L "
+    file-type [warehouse] of almacen
+    file-type " "
+    file-type elemento
+    file-type " "
+    file-type 1
+    file-type "\n"
     ;ask almacen [array:set unidades elemento (array:item unidades elemento - 1) ]    
   ][
     ifelse length filter [? = elemento] items-cargados = 0[
@@ -158,6 +171,7 @@ end
 to ve-almacen
   ifelse patch-here = almacen[
       set items-cargados lput elemento items-cargados
+
   ]
   [
       face almacen
@@ -168,6 +182,14 @@ end
 to ve-orden
   ifelse patch-here = orden[
       set items-a-buscar but-first items-a-buscar 
+      file-type who
+      file-type " D "
+      file-type [order] of orden
+      file-type " "
+      file-type elemento
+      file-type " "
+      file-type 1
+      file-type "\n"
       set elemento -1
       if length [lista] of patch-here = 0 [
         ask patch-here [set pcolor black]
@@ -182,8 +204,8 @@ end
 GRAPHICS-WINDOW
 6
 66
-1218
-899
+1018
+699
 -1
 -1
 2.0
@@ -197,11 +219,11 @@ GRAPHICS-WINDOW
 0
 1
 0
-600
+500
 0
-400
-0
-0
+300
+1
+1
 1
 ticks
 30.0
